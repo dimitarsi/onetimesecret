@@ -24,7 +24,6 @@ you can configure your `/etc/hosts` ( or `C:\Windows\System32\drivers\etc\hosts`
 
 ## Run with docker
 
-* Build the image `docker build . -t ots`, this can be adjusted in the `docker-compose.yml` file
 * Run docker compose `docker-compose up`
 
 ## Run with VSCode

@@ -1,6 +1,6 @@
 services:
   api:
-    image: ots
+    build: .
     ports:
       - "5000:5000"
   redisdb:

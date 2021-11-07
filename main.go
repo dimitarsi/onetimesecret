@@ -33,6 +33,7 @@ func main() {
 	})
 
 	app.POST("/create-secret", createSecret)
+	app.POST("/secrets", findSecret)
 
 	app.Run(fmt.Sprintf(":%d", *port))
 }
@@ -42,9 +43,11 @@ func createSecret(c *gin.Context) {
 	client, _ := c.Get("redis")
 
 	data := &request.CreateSecretRequest{}
-	data.Redis = client.(redis.Client)
 
 	err := c.BindJSON(data)
+
+	data.Redis = client.(redis.Client)
+
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))
@@ -58,6 +61,29 @@ func createSecret(c *gin.Context) {
 	}
 
 	c.JSON(400, getErrorResponseMessage(err))
+}
+
+func findSecret(c *gin.Context) {
+	client, _ := c.Get("redis")
+	data := &request.FindSecretRequest{}
+
+	err := c.BindJSON(data)
+
+	data.Redis = client.(redis.Client)
+
+
+	if err != nil {
+		c.JSON(400, getErrorResponseMessage(err))
+		return 
+	}
+
+	response, err := api.FindSecret(data)
+
+	if err != nil {
+		c.JSON(400, getErrorResponseMessage(err))
+	}
+
+	c.JSON(200, response)
 }
 
 func getErrorResponseMessage(err error) map[string]string {

@@ -1,6 +1,6 @@
 services:
   api:
-    image: ost-builder
+    image: ots
     ports:
       - "5000:5000"
   redisdb:

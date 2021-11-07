@@ -3,12 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"time"
 
+	"github.com/dimitarsi/onetimesecret/api"
 	"github.com/dimitarsi/onetimesecret/request"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -19,18 +18,32 @@ func main() {
 
 	app := gin.New()
 
+	app.Use(gin.Logger())
+	app.Use(gin.Recovery())
+
+	app.Use(func (c *gin.Context) {
+
+		c.Set("redis", redis.NewClient(&redis.Options{
+			Addr: "redis:6379",
+			Password: "",
+			DB: 0,
+		}))
+
+		c.Next()
+	})
+
 	app.POST("/create-secret", createSecret)
 
 	app.Run(fmt.Sprintf(":%d", *port))
 }
 
-const (
-	Expire time.Duration = time.Minute * 20
-)
-
 
 func createSecret(c *gin.Context) {
+	client, _ := c.Get("redis")
+
 	data := &request.CreateSecretRequest{}
+	data.Redis = client.(redis.Client)
+
 	err := c.BindJSON(data)
 
 	if err != nil {
@@ -38,22 +51,13 @@ func createSecret(c *gin.Context) {
 		return
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "redis:6379",
-		Password: "",
-		DB: 0,
-	})
+	response, err := api.CreateSecret(data)
 
-	k, _ := uuid.NewUUID()
+	if err != nil {
+		c.JSON(200, response)
+	}
 
-	redisClient.Set(k.String(), data, Expire)
-
-	expires := time.Now().Add(Expire)
-
-	c.JSON(200, gin.H{
-		"secret": k.String(),
-		"expires": expires.Local().String(),
-	})
+	c.JSON(400, getErrorResponseMessage(err))
 }
 
 func getErrorResponseMessage(err error) map[string]string {

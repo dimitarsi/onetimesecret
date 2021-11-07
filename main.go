@@ -21,12 +21,12 @@ func main() {
 	app.Use(gin.Logger())
 	app.Use(gin.Recovery())
 
-	app.Use(func (c *gin.Context) {
+	app.Use(func(c *gin.Context) {
 
-		c.Set("redis", redis.NewClient(&redis.Options{
-			Addr: "redis:6379",
+		c.Set("redis", *redis.NewClient(&redis.Options{
+			Addr:     "redisdb:6379",
 			Password: "",
-			DB: 0,
+			DB:       0,
 		}))
 
 		c.Next()
@@ -38,7 +38,7 @@ func main() {
 	app.Run(fmt.Sprintf(":%d", *port))
 }
 
-
+// Saves data into redis, @see also api.CreateSecret
 func createSecret(c *gin.Context) {
 	client, _ := c.Get("redis")
 
@@ -48,7 +48,6 @@ func createSecret(c *gin.Context) {
 
 	data.Redis = client.(redis.Client)
 
-
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))
 		return
@@ -57,12 +56,14 @@ func createSecret(c *gin.Context) {
 	response, err := api.CreateSecret(data)
 
 	if err != nil {
-		c.JSON(200, response)
+		c.JSON(400, getErrorResponseMessage(err))
+		return
 	}
 
-	c.JSON(400, getErrorResponseMessage(err))
+	c.JSON(200, response)
 }
 
+// Get secret from redis, @see also api.FindSecret
 func findSecret(c *gin.Context) {
 	client, _ := c.Get("redis")
 	data := &request.FindSecretRequest{}
@@ -71,25 +72,25 @@ func findSecret(c *gin.Context) {
 
 	data.Redis = client.(redis.Client)
 
-
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))
-		return 
+		return
 	}
 
 	response, err := api.FindSecret(data)
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))
+		return
 	}
 
 	c.JSON(200, response)
 }
 
-func getErrorResponseMessage(err error) map[string]string {
-	return map[string]string {
-		"status": "error",
-		"error": "Something went wrong",
+func getErrorResponseMessage(err error) *gin.H {
+	return &gin.H{
+		"status":  "error",
+		"error":   "Something went wrong",
 		"details": fmt.Sprintf("%v", err),
 	}
 }

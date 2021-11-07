@@ -3,5 +3,5 @@ services:
     image: ost-builder
     ports:
       - "5000:5000"
-  db:
+  redisdb:
     image: redis

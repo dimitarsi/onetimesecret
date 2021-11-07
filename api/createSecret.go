@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/dimitarsi/onetimesecret/request"
@@ -14,6 +15,11 @@ const (
 	HashCost int = 10
 )
 
+// CreateSecret endpoint accepts the following parameters
+// @param string Password
+// @param string Message
+//
+// @see requests.createSecretRequest
 func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{}, error) {
 
 	k, _ := uuid.NewUUID()
@@ -25,10 +31,16 @@ func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{},
 		return gin.H{}, err
 	}
 
-	status := request.Redis.Set(k.String(), map[string]string{
+	redisVal, err := json.Marshal(map[string]string{
 		"message": request.Message,
 		"password": string(hash),
-	}, Expire)
+	})
+
+	if err != nil {
+		return gin.H{}, err
+	}
+
+	status := request.Redis.Set(k.String(), string(redisVal) , Expire)
 
 	return gin.H{
 		"entry": k,

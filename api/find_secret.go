@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/dimitarsi/onetimesecret/request"
@@ -15,17 +14,13 @@ import (
 //
 // @see request.findSecretRequest
 func FindSecret(request *request.FindSecretRequest) (map[string]string, error) {
-
-	rawData, err := request.Redis.Get(request.SecretId).Result()
+	
+	data, err := request.Secrets.GetDel(request.SecretId)
 
 	if err != nil {
 		fmt.Printf("Error finding redis key - %s", request.SecretId)
 		return nil, err
 	}
-
-	data := make(map[string]string)
-	
-	err = json.Unmarshal([]byte(rawData), &data)
 
 
 	if err != nil {
@@ -39,8 +34,6 @@ func FindSecret(request *request.FindSecretRequest) (map[string]string, error) {
 		fmt.Printf("Passwords didn't match, data[\"password\"]=%d len; request[\"password\"]=%d", len(data["password"]), len(request.Hash))
 		return nil, fmt.Errorf("no such secret")
 	}
-
-	request.Redis.Del(request.SecretId)
 
 	return map[string]string{
 		"message": data["message"],

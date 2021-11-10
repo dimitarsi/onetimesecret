@@ -40,10 +40,10 @@ func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{},
 		return gin.H{}, err
 	}
 
-	status := request.Redis.Set(k.String(), string(redisVal) , Expire)
+	err = request.Secrets.Set(k.String(), string(redisVal))
 
 	return gin.H{
 		"entry": k,
 		"expires": expires,
-	}, status.Err()
+	}, err
 }

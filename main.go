@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/dimitarsi/onetimesecret/api"
+	"github.com/dimitarsi/onetimesecret/repository"
 	"github.com/dimitarsi/onetimesecret/request"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 )
 
 func main() {
@@ -23,11 +23,7 @@ func main() {
 
 	app.Use(func(c *gin.Context) {
 
-		c.Set("redis", *redis.NewClient(&redis.Options{
-			Addr:     "redisdb:6379",
-			Password: "",
-			DB:       0,
-		}))
+		c.Set("secrets", repository.NewRedisSecretsRepository())
 
 		c.Next()
 	})
@@ -40,13 +36,14 @@ func main() {
 
 // Saves data into redis, @see also api.CreateSecret
 func createSecret(c *gin.Context) {
-	client, _ := c.Get("redis")
+	client, _ := c.Get("secrets")
 
 	data := &request.CreateSecretRequest{}
 
 	err := c.BindJSON(data)
 
-	data.Redis = client.(redis.Client)
+	data.Secrets = client.(repository.SecretRepository)
+	
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))
@@ -70,7 +67,7 @@ func findSecret(c *gin.Context) {
 
 	err := c.BindJSON(data)
 
-	data.Redis = client.(redis.Client)
+	data.Secrets = client.(repository.SecretRepository)
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))

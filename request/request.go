@@ -3,7 +3,10 @@
 // all the parameters and the services needed to oparate
 package request
 
-import "github.com/dimitarsi/onetimesecret/repository"
+import (
+	"github.com/dimitarsi/onetimesecret/repository"
+	"github.com/dimitarsi/onetimesecret/utils"
+)
 
 // All requests should have access to a specific "service"
 // This generic request contains all logic our endpoints neetd to
@@ -13,4 +16,5 @@ import "github.com/dimitarsi/onetimesecret/repository"
 // @see findSecretRequest
 type GenericSecretRequest struct {
 	Secrets repository.SecretRepository
+	Identity utils.IdentityUtil
 }

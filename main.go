@@ -7,6 +7,7 @@ import (
 	"github.com/dimitarsi/onetimesecret/api"
 	"github.com/dimitarsi/onetimesecret/repository"
 	"github.com/dimitarsi/onetimesecret/request"
+	"github.com/dimitarsi/onetimesecret/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +25,7 @@ func main() {
 	app.Use(func(c *gin.Context) {
 
 		c.Set("secrets", repository.NewRedisSecretsRepository())
+		c.Set("identity", utils.NewUuidIdentity())
 
 		c.Next()
 	})
@@ -43,6 +45,7 @@ func createSecret(c *gin.Context) {
 	err := c.BindJSON(data)
 
 	data.Secrets = client.(repository.SecretRepository)
+	data.Identity = client.(utils.IdentityUtil)
 	
 
 	if err != nil {
@@ -68,6 +71,7 @@ func findSecret(c *gin.Context) {
 	err := c.BindJSON(data)
 
 	data.Secrets = client.(repository.SecretRepository)
+	data.Identity = client.(utils.IdentityUtil)
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))

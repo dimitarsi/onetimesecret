@@ -6,7 +6,6 @@ import (
 
 	"github.com/dimitarsi/onetimesecret/request"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,7 +21,7 @@ const (
 // @see requests.createSecretRequest
 func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{}, error) {
 
-	k, _ := uuid.NewUUID()
+	k := request.Identity.NewId()
 	expires := time.Now().Add(Expire)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.Password), HashCost)
@@ -40,7 +39,7 @@ func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{},
 		return gin.H{}, err
 	}
 
-	err = request.Secrets.Set(k.String(), string(redisVal))
+	err = request.Secrets.Set(k, string(redisVal))
 
 	return gin.H{
 		"entry": k,

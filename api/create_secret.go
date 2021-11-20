@@ -2,9 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"time"
-	"strings"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/dimitarsi/onetimesecret/request"
 	"github.com/dimitarsi/onetimesecret/request/validation"
@@ -24,14 +24,16 @@ const (
 // @see requests.createSecretRequest
 func CreateSecret(request *request.CreateSecretRequest) (map[string]interface{}, error) {
 
-	k := request.Identity.NewId()
-	expires := time.Now().Add(Expire)
-
 	hasErrors, validationErrors := validation.CheckPassword(request.Password)
 
 	if hasErrors {
 		return gin.H{}, fmt.Errorf("%s", strings.Join( []string(validationErrors), ","))
 	}
+
+	k := request.Identity.NewId()
+	expires := time.Now().Add(Expire)
+
+
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.Password), HashCost)
 

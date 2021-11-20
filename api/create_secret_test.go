@@ -10,7 +10,33 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestCreateSecret(t *testing.T) {
+func TestCreateSecretWithWeakPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	defer ctrl.Finish()
+
+	secretsMock := repository.NewMockSecretRepository(ctrl)
+	identityMock := utils.NewMockIdentityUtil(ctrl)
+
+	mockPassword := "Foobar"
+	mockMessage := "User"
+
+	request := &request.CreateSecretRequest{
+		Message: mockMessage,
+		Password: mockPassword,
+	}
+
+	request.Secrets = secretsMock
+	request.Identity = identityMock
+
+	_, err := CreateSecret(request)
+
+	if err == nil {
+		t.Fatal("CreateSecret should return an error when weak password is used")
+	}
+}
+
+func TestCreateSecretWithStrongPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	defer ctrl.Finish()
@@ -19,7 +45,7 @@ func TestCreateSecret(t *testing.T) {
 	identityMock := utils.NewMockIdentityUtil(ctrl)
 
 	mockId := "uuid-1234"
-	mockPassword := "Foobar"
+	mockPassword := "ThisIsALongPassword!"
 	mockMessage := "User"
 
 	identityMock.EXPECT().NewId().Return(mockId)

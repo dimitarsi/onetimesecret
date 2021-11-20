@@ -39,13 +39,14 @@ func main() {
 // Saves data into redis, @see also api.CreateSecret
 func createSecret(c *gin.Context) {
 	client, _ := c.Get("secrets")
+	identity, _ := c.Get("identity")
 
 	data := &request.CreateSecretRequest{}
 
 	err := c.BindJSON(data)
 
 	data.Secrets = client.(repository.SecretRepository)
-	data.Identity = client.(utils.IdentityUtil)
+	data.Identity = identity.(utils.IdentityUtil)
 	
 
 	if err != nil {
@@ -65,13 +66,14 @@ func createSecret(c *gin.Context) {
 
 // Get secret from redis, @see also api.FindSecret
 func findSecret(c *gin.Context) {
-	client, _ := c.Get("redis")
+	client, _ := c.Get("secrets")
+	identity, _ := c.Get("identity")
 	data := &request.FindSecretRequest{}
 
 	err := c.BindJSON(data)
 
 	data.Secrets = client.(repository.SecretRepository)
-	data.Identity = client.(utils.IdentityUtil)
+	data.Identity = identity.(utils.IdentityUtil)
 
 	if err != nil {
 		c.JSON(400, getErrorResponseMessage(err))

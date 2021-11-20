@@ -25,14 +25,14 @@ func FindSecret(request *request.FindSecretRequest) (map[string]string, error) {
 
 	if err != nil {
 		fmt.Printf("Error unmarshalling the redis data")
-		return nil, fmt.Errorf("no such secret")
+		return nil, fmt.Errorf("secret does not exist anymore")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(data["password"]), []byte(request.Hash))
 	
 	if err != nil {
-		fmt.Printf("Passwords didn't match, data[\"password\"]=%d len; request[\"password\"]=%d", len(data["password"]), len(request.Hash))
-		return nil, fmt.Errorf("no such secret")
+		fmt.Printf("Passwords don't match, data[\"password\"]=%d len; request[\"password\"]=%d", len(data["password"]), len(request.Hash))
+		return nil, fmt.Errorf("secret does not exist anymore")
 	}
 
 	return map[string]string{
